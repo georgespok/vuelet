@@ -1,0 +1,22 @@
+[
+  { "id": 1, "name": "Ada Lovelace", "role": "Mathematician", "location": "London" },
+  { "id": 2, "name": "Alan Turing", "role": "Computer Scientist", "location": "Princeton" },
+  { "id": 3, "name": "Grace Hopper", "role": "Rear Admiral", "location": "Arlington" },
+  { "id": 4, "name": "Katherine Johnson", "role": "Mathematician", "location": "Hampton" },
+  { "id": 5, "name": "Dorothy Vaughan", "role": "Programmer", "location": "Hampton" },
+  { "id": 6, "name": "Mary Jackson", "role": "Engineer", "location": "Hampton" },
+  { "id": 7, "name": "Nikola Tesla", "role": "Inventor", "location": "New York" },
+  { "id": 8, "name": "Marie Curie", "role": "Physicist", "location": "Paris" },
+  { "id": 9, "name": "Albert Einstein", "role": "Physicist", "location": "Princeton" },
+  { "id": 10, "name": "Rosalind Franklin", "role": "Chemist", "location": "London" },
+  { "id": 11, "name": "Tim Berners-Lee", "role": "Computer Scientist", "location": "Geneva" },
+  { "id": 12, "name": "Edsger Dijkstra", "role": "Computer Scientist", "location": "Austin" },
+  { "id": 13, "name": "Donald Knuth", "role": "Computer Scientist", "location": "Stanford" },
+  { "id": 14, "name": "Radia Perlman", "role": "Engineer", "location": "Cambridge" },
+  { "id": 15, "name": "Hedy Lamarr", "role": "Inventor", "location": "Los Angeles" },
+  { "id": 16, "name": "Claude Shannon", "role": "Mathematician", "location": "Cambridge" },
+  { "id": 17, "name": "Barbara Liskov", "role": "Computer Scientist", "location": "Cambridge" },
+  { "id": 18, "name": "Linus Torvalds", "role": "Software Engineer", "location": "Portland" },
+  { "id": 19, "name": "Margaret Hamilton", "role": "Software Engineer", "location": "Boston" },
+  { "id": 20, "name": "Srinivasa Ramanujan", "role": "Mathematician", "location": "Chennai" }
+]

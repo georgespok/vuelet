@@ -3,7 +3,8 @@ import Vuetify from "vuetify";
 import "vuetify/dist/vuetify.min.css";
 import "@mdi/font/css/materialdesignicons.min.css";
 
-import PeopleTable from "./table";
+import PeopleTable, { PersonRow } from "./table";
+import rows from "./people.json";
 
 Vue.use(Vuetify);
 const vuetify = new Vuetify({});
@@ -11,6 +12,9 @@ const vuetify = new Vuetify({});
 const AppRoot = Vue.extend({
   name: "AppRoot",
   components: { PeopleTable },
+  data(): { rows: PersonRow[] } {
+    return { rows: (rows as any) as PersonRow[] };
+  },
   template: `
     <v-app>
       <v-container fluid class="app-layout d-flex flex-column">
@@ -19,7 +23,7 @@ const AppRoot = Vue.extend({
           <p>Example of vuetify data table with column filtering headers</p>
         </header>
         <main>
-          <people-table />
+          <people-table :rows="rows" />
         </main>
       </v-container>
     </v-app>
