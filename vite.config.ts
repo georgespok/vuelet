@@ -3,6 +3,9 @@ import vue from "@vitejs/plugin-vue2";
 import path from "path";
 
 export default defineConfig({
+  // GitHub Pages project sites are served from `/<repo>/`
+  // (e.g. https://georgespok.github.io/vuelet/)
+  base: "/vuelet/",
   plugins: [vue()],
   resolve: {
     alias: {
