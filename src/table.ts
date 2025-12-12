@@ -84,9 +84,13 @@ export default Vue.extend({
     },
     resolveValue(row: any, path: string): any {
       if (!path) return undefined;
-      if (path.indexOf(".") === -1) return row ? row[path] : undefined;
 
-      const parts = path.split(".");
+      // Support dot-paths and simple bracket notation, e.g. `expenses[0].value`
+      const normalizedPath = path.replace(/\[(\d+)\]/g, ".$1");
+
+      if (normalizedPath.indexOf(".") === -1) return row ? row[normalizedPath] : undefined;
+
+      const parts = normalizedPath.split(".");
       let current: any = row;
       for (let i = 0; i < parts.length; i++) {
         if (current === null || current === undefined) return undefined;
@@ -99,6 +103,45 @@ export default Vue.extend({
       if (typeof header.formatter !== "function") return String(raw ?? "");
       return header.formatter.call(this, raw, row, header);
     },
+    customSort(items: any[], sortBy: string[], sortDesc: boolean[]): any[] {
+      if (!Array.isArray(sortBy) || sortBy.length === 0) return items;
+
+      const copy = items.slice();
+
+      const compare = (a: any, b: any): number => {
+        for (let i = 0; i < sortBy.length; i++) {
+          const key = sortBy[i];
+          const desc = !!(sortDesc && sortDesc[i]);
+
+          const aRaw = this.resolveValue(a, key);
+          const bRaw = this.resolveValue(b, key);
+
+          const aNull = aRaw === null || aRaw === undefined;
+          const bNull = bRaw === null || bRaw === undefined;
+          if (aNull && bNull) continue;
+          if (aNull) return desc ? 1 : -1;
+          if (bNull) return desc ? -1 : 1;
+
+          const aNum = typeof aRaw === "number" ? aRaw : Number(aRaw);
+          const bNum = typeof bRaw === "number" ? bRaw : Number(bRaw);
+
+          let cmp = 0;
+          if (Number.isFinite(aNum) && Number.isFinite(bNum)) {
+            cmp = aNum === bNum ? 0 : aNum < bNum ? -1 : 1;
+          } else {
+            const aStr = String(aRaw);
+            const bStr = String(bRaw);
+            cmp = aStr.localeCompare(bStr);
+          }
+
+          if (cmp !== 0) return desc ? -cmp : cmp;
+        }
+        return 0;
+      };
+
+      copy.sort(compare);
+      return copy;
+    },
   },
   template: `
     <v-card outlined>
@@ -108,6 +151,7 @@ export default Vue.extend({
         :items="filteredRows"
         :page.sync="page"
         :items-per-page="itemsPerPage"
+        :custom-sort="customSort"
         :footer-props="{ itemsPerPageOptions: [5, 10, 20, -1] }"
         item-key="id"
         dense

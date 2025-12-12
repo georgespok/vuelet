@@ -15,6 +15,8 @@ const AppRoot = Vue.extend({
   name: "AppRoot",
   components: { PeopleTable },
   data(): { rows: PersonRow[]; headers: ColumnHeader[] } {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
     const headers: ColumnHeader[] = [
       {
         text: "ID",
@@ -73,6 +75,19 @@ const AppRoot = Vue.extend({
         },
       },
     ];
+
+    for (let i = 0; i < months.length; i++) {
+      headers.push({
+        text: `${months[i]} Exp`,
+        value: `expenses[${i}].value`,
+        width: "110px",
+        formatter: function (this: any, value: any): string {
+          if (value === null || value === undefined || value === "") return "";
+          const asNumber = typeof value === "number" ? value : Number(value);
+          return Number.isFinite(asNumber) ? asNumber.toFixed(1) : String(value);
+        },
+      });
+    }
 
     return { rows: (rows as any) as PersonRow[], headers };
   },

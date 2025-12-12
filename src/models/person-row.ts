@@ -1,3 +1,8 @@
+export interface ExpenseEntry {
+  month: string;
+  value: number;
+}
+
 export interface PersonRow {
   id: number;
   name: string;
@@ -6,5 +11,5 @@ export interface PersonRow {
   salary: number;
   deductions: number;
   netPay: number;
+  expenses: ExpenseEntry[];
 }
-
