@@ -22,7 +22,6 @@ const AppRoot = Vue.extend({
         text: "ID",
         value: "id",
         width: "80px",
-        getValue: (row: PersonRow): any => row?.id,
         formatter: function (this: any, value: any): string {
           return String(value ?? "");
         },
@@ -31,7 +30,6 @@ const AppRoot = Vue.extend({
         text: "Name",
         value: "name",
         width: "220px",
-        getValue: (row: PersonRow): any => row?.name,
         formatter: function (this: any, value: any): string {
           return String(value ?? "");
         },
@@ -40,7 +38,6 @@ const AppRoot = Vue.extend({
         text: "Role",
         value: "role",
         width: "200px",
-        getValue: (row: PersonRow): any => row?.role,
         formatter: function (this: any, value: any): string {
           return String(value ?? "");
         },
@@ -49,7 +46,6 @@ const AppRoot = Vue.extend({
         text: "Location",
         value: "location",
         width: "160px",
-        getValue: (row: PersonRow): any => row?.location,
         formatter: function (this: any, value: any): string {
           return String(value ?? "");
         },
@@ -58,7 +54,6 @@ const AppRoot = Vue.extend({
         text: "Salary",
         value: "salary",
         width: "140px",
-        getValue: (row: PersonRow): any => row?.salary,
         formatter: function (this: any, value: any): string {
           return this.formatCurrency(value);
         },
@@ -67,7 +62,6 @@ const AppRoot = Vue.extend({
         text: "Deductions",
         value: "deductions",
         width: "150px",
-        getValue: (row: PersonRow): any => row?.deductions,
         formatter: function (this: any, value: any): string {
           return this.formatCurrency(value);
         },
@@ -76,7 +70,6 @@ const AppRoot = Vue.extend({
         text: "Net Pay",
         value: "netPay",
         width: "140px",
-        getValue: (row: PersonRow): any => row?.netPay,
         formatter: function (this: any, value: any): string {
           return this.formatCurrency(value);
         },

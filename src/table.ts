@@ -106,7 +106,15 @@ export default Vue.extend({
       }
     },
     getCellValue(row: any, header: ColumnHeader | undefined): any {
-      if (!header) return undefined;
+      
+      if (!header) {
+        return undefined;
+      }
+      
+      if (!header.getValue) {
+        return row[header.value] ?? undefined;
+      }
+
       return header.getValue(row, header);
     },
     formatCell(row: any, header: ColumnHeader): string {
