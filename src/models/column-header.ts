@@ -3,5 +3,6 @@ export interface ColumnHeader {
   value: string;
   width: string;
   formatter: (this: any, value: any, row: any, header: ColumnHeader) => string;
+  getValue: (row: any, header: ColumnHeader) => any;
 }
 
