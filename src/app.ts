@@ -90,9 +90,7 @@ const AppRoot = Vue.extend({
         width: "110px",
         getValue: (row: PersonRow): any => row?.expenses?.[i]?.value,
         formatter: function (this: any, value: any): string {
-          if (value === null || value === undefined || value === "") return "";
-          const asNumber = typeof value === "number" ? value : Number(value);
-          return isFinite(asNumber) ? asNumber.toFixed(1) : String(value);
+          return this.formatCurrency(value);
         },
       });
     }
