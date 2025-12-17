@@ -3,7 +3,10 @@ import { formattingMixin } from "./shared/mixins/formatting-mixin.component";
 import type { ColumnHeader } from "./models/column-header";
 import type { PersonRow } from "./models/person-row";
 
-type ActiveFilter = { header: ColumnHeader; filterText: string };
+type ExpenseFilterMode = "" | "eq0" | "gt0";
+type ActiveFilter =
+  | { kind: "text"; header: ColumnHeader; filterText: string }
+  | { kind: "expense"; header: ColumnHeader; mode: Exclude<ExpenseFilterMode, ""> };
 
 export default Vue.extend({
   name: "PeopleTable",
@@ -71,6 +74,10 @@ export default Vue.extend({
     },
   },
   methods: {
+    isExpenseHeader(header: ColumnHeader): boolean {
+      // All expense columns use a dropdown filter instead of free-text.
+      return typeof header.value === "string" && header.value.indexOf("expenses") === 0;
+    },
     normalizeFilterText(raw: any): string {
       return String(raw ?? "").trim().toLowerCase();
     },
@@ -78,10 +85,15 @@ export default Vue.extend({
       const activeFilters: ActiveFilter[] = [];
       for (let i = 0; i < headers.length; i++) {
         const header = headers[i];
-        const filterText = this.normalizeFilterText(filters[header.value]);
-        if (filterText) { 
-          activeFilters.push({ header, filterText });
+
+        if (this.isExpenseHeader(header)) {
+          const mode = (filters[header.value] as ExpenseFilterMode) || "";
+          if (mode === "eq0" || mode === "gt0") activeFilters.push({ kind: "expense", header, mode });
+          continue;
         }
+
+        const filterText = this.normalizeFilterText(filters[header.value]);
+        if (filterText) activeFilters.push({ kind: "text", header, filterText });
       }
       return activeFilters;
     },
@@ -95,6 +107,15 @@ export default Vue.extend({
     },
     isCellMatchesFilter(row: PersonRow, filter: ActiveFilter): boolean {
       const raw = this.getCellValue(row, filter.header);
+
+      if (filter.kind === "expense") {
+        // Treat null/undefined/empty as 0.
+        if (raw === null || raw === undefined || raw === "") return filter.mode === "eq0";
+        const asNumber = typeof raw === "number" ? raw : Number(raw);
+        const value = isFinite(asNumber) ? asNumber : 0;
+        return filter.mode === "eq0" ? value === 0 : value > 0;
+      }
+
       const cellText = String(raw ?? "").toLowerCase();
       return cellText.indexOf(filter.filterText) !== -1;
     },
@@ -108,6 +129,10 @@ export default Vue.extend({
     getCellValue(row: any, header: ColumnHeader | undefined): any {
       
       if (!header) {
+        return undefined;
+      }
+
+      if (row === null || row === undefined) {
         return undefined;
       }
       
@@ -139,7 +164,22 @@ export default Vue.extend({
         <template v-slot:body.prepend>
           <tr>
             <td v-for="header in normalizedHeaders" :key="'filter-' + header.value" :style="{ width: header.width }">
+              <v-select
+                v-if="isExpenseHeader(header)"
+                v-model="filters[header.value]"
+                :items="[
+                  { text: 'All', value: '' },
+                  { text: '= 0', value: 'eq0' },
+                  { text: '> 0', value: 'gt0' }
+                ]"
+                item-text="text"
+                item-value="value"
+                dense
+                hide-details
+                class="ma-0 pa-0"
+              />
               <v-text-field
+                v-else
                 v-model="filters[header.value]"
                 dense
                 clearable
