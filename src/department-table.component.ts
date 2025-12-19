@@ -1,16 +1,20 @@
 import Vue from "vue";
 import { formattingMixin } from "./shared/mixins/formatting-mixin.component";
 import type { ColumnHeader } from "./models/column-header";
-import type { PersonRow } from "./models/person-row";
+import type { DepartmentRow } from "./models/department-row";
+import TableFilterRow from "./components/table-filter-row.component";
 
-type ExpenseFilterMode = "" | "eq0" | "gt0";
+type MoneyFilterMode = "" | "eq0" | "gt0";
 type ActiveFilter =
   | { kind: "text"; header: ColumnHeader; filterText: string }
-  | { kind: "expense"; header: ColumnHeader; mode: Exclude<ExpenseFilterMode, ""> };
+  | { kind: "money"; header: ColumnHeader; mode: Exclude<MoneyFilterMode, ""> };
 
 export default Vue.extend({
-  name: "PeopleTable",
+  name: "department-table",
   mixins: [formattingMixin],
+  components: {
+    "table-filter-row": TableFilterRow,
+  },
   props: {
     rows: {
       type: Array,
@@ -53,27 +57,17 @@ export default Vue.extend({
     normalizedHeaders(): ColumnHeader[] {
       return (this.headers as any) as ColumnHeader[];
     },
-    
-    headerByValue(): Record<string, ColumnHeader> {
-      const headers = this.normalizedHeaders;
-      const map: Record<string, ColumnHeader> = {};
-      for (let i = 0; i < headers.length; i++) {
-        map[headers[i].value] = headers[i];
-      }
-      return map;
-    },
-
-    filteredRows(): PersonRow[] {
-      const activeFilters = this.getActiveFilters(this.normalizedHeaders, this.filters);      
-      const rows = (this.rows as any) as PersonRow[];
-      if (!activeFilters.length) { 
-        return rows; 
-      }
-
-      return rows.filter((row: PersonRow) => this.isRowMatchesFilters(row, activeFilters));
+    filteredRows(): DepartmentRow[] {
+      const activeFilters = this.getActiveFilters(this.normalizedHeaders, this.filters);
+      const rows = (this.rows as any) as DepartmentRow[];
+      if (!activeFilters.length) return rows;
+      return rows.filter((row: DepartmentRow) => this.isRowMatchesFilters(row, activeFilters));
     },
   },
   methods: {
+    onSetFilter(payload: { key: string; value: any }): void {
+      this.$set(this.filters, payload.key, payload.value);
+    },
     normalizeFilterText(raw: any): string {
       return String(raw ?? "").trim().toLowerCase();
     },
@@ -83,8 +77,8 @@ export default Vue.extend({
         const header = headers[i];
 
         if (header.useMoneyFilter) {
-          const mode = (filters[header.value] as ExpenseFilterMode) || "";
-          if (mode === "eq0" || mode === "gt0") activeFilters.push({ kind: "expense", header, mode });
+          const mode = (filters[header.value] as MoneyFilterMode) || "";
+          if (mode === "eq0" || mode === "gt0") activeFilters.push({ kind: "money", header, mode });
           continue;
         }
 
@@ -93,18 +87,16 @@ export default Vue.extend({
       }
       return activeFilters;
     },
-    isRowMatchesFilters(row: PersonRow, filters: ActiveFilter[]): boolean {
+    isRowMatchesFilters(row: DepartmentRow, filters: ActiveFilter[]): boolean {
       for (let i = 0; i < filters.length; i++) {
-        if (!this.isCellMatchesFilter(row, filters[i])) { 
-          return false; 
-        }
+        if (!this.isCellMatchesFilter(row, filters[i])) return false;
       }
       return true;
     },
-    isCellMatchesFilter(row: PersonRow, filter: ActiveFilter): boolean {
+    isCellMatchesFilter(row: DepartmentRow, filter: ActiveFilter): boolean {
       const raw = this.getCellValue(row, filter.header);
 
-      if (filter.kind === "expense") {
+      if (filter.kind === "money") {
         // Treat null/undefined/empty as 0.
         if (raw === null || raw === undefined || raw === "") return filter.mode === "eq0";
         const asNumber = typeof raw === "number" ? raw : Number(raw);
@@ -123,30 +115,20 @@ export default Vue.extend({
       }
     },
     getCellValue(row: any, header: ColumnHeader | undefined): any {
-      
-      if (!header) {
-        return undefined;
-      }
-
-      if (row === null || row === undefined) {
-        return undefined;
-      }
-      
-      if (!header.getValue) {
-        return row[header.value] ?? undefined;
-      }
-
+      if (!header) return undefined;
+      if (row === null || row === undefined) return undefined;
+      if (!header.getValue) return row[header.value] ?? undefined;
       return header.getValue(row, header);
     },
     formatCell(row: any, header: ColumnHeader): string {
       const raw = this.getCellValue(row, header);
       if (typeof header.formatter !== "function") return String(raw ?? "");
       return header.formatter.call(this, raw, row, header);
-    }    
+    },
   },
   template: `
     <v-card outlined>
-      <v-card-title>People</v-card-title>
+      <v-card-title>Departments</v-card-title>
       <v-data-table
         :headers="normalizedHeaders"
         :items="filteredRows"
@@ -158,33 +140,12 @@ export default Vue.extend({
         class="elevation-0"
       >
         <template v-slot:body.prepend>
-          <tr>
-            <td v-for="header in normalizedHeaders" :key="'filter-' + header.value" :style="{ width: header.width }">
-              <v-select
-                v-if="header.useMoneyFilter"
-                v-model="filters[header.value]"
-                :items="[
-                  { text: 'All', value: '' },
-                  { text: '= 0', value: 'eq0' },
-                  { text: '> 0', value: 'gt0' }
-                ]"
-                item-text="text"
-                item-value="value"
-                dense
-                hide-details
-                class="ma-0 pa-0"
-              />
-              <v-text-field
-                v-else
-                v-model="filters[header.value]"
-                dense
-                clearable
-                hide-details
-                placeholder="Filter"
-                class="ma-0 pa-0"
-              />
-            </td>
-          </tr>
+          <tr
+            is="table-filter-row"
+            :headers="normalizedHeaders"
+            :filters="filters"
+            @set-filter="onSetFilter"
+          ></tr>
         </template>
         <template v-slot:item="{ item }">
           <tr>
@@ -201,3 +162,5 @@ export default Vue.extend({
     </v-card>
   `,
 });
+
+

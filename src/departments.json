@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "name": "Engineering",
+    "salaries": [
+      { "month": "Jan", "amount": 520000 },
+      { "month": "Feb", "amount": 535000 },
+      { "month": "Mar", "amount": 548000 },
+      { "month": "Apr", "amount": 552000 },
+      { "month": "May", "amount": 560000 },
+      { "month": "Jun", "amount": 575000 },
+      { "month": "Jul", "amount": 590000 },
+      { "month": "Aug", "amount": 602000 },
+      { "month": "Sep", "amount": 610000 },
+      { "month": "Oct", "amount": 625000 },
+      { "month": "Nov", "amount": 640000 },
+      { "month": "Dec", "amount": 655000 }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Sales",
+    "salaries": [
+      { "month": "Jan", "amount": 310000 },
+      { "month": "Feb", "amount": 295000 },
+      { "month": "Mar", "amount": 330000 },
+      { "month": "Apr", "amount": 340000 },
+      { "month": "May", "amount": 355000 },
+      { "month": "Jun", "amount": 360000 },
+      { "month": "Jul", "amount": 345000 },
+      { "month": "Aug", "amount": 350000 },
+      { "month": "Sep", "amount": 365000 },
+      { "month": "Oct", "amount": 380000 },
+      { "month": "Nov", "amount": 390000 },
+      { "month": "Dec", "amount": 410000 }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "HR",
+    "salaries": [
+      { "month": "Jan", "amount": 120000 },
+      { "month": "Feb", "amount": 120000 },
+      { "month": "Mar", "amount": 125000 },
+      { "month": "Apr", "amount": 125000 },
+      { "month": "May", "amount": 127000 },
+      { "month": "Jun", "amount": 130000 },
+      { "month": "Jul", "amount": 130000 },
+      { "month": "Aug", "amount": 132000 },
+      { "month": "Sep", "amount": 135000 },
+      { "month": "Oct", "amount": 135000 },
+      { "month": "Nov", "amount": 140000 },
+      { "month": "Dec", "amount": 145000 }
+    ]
+  }
+]
+
+
