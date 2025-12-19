@@ -81,6 +81,7 @@ const AppRoot = Vue.extend({
         text: `${months[i]} Exp`,
         value: `expenses[${i}].value`,
         width: "110px",
+        useMoneyFilter: true,
         getValue: (row: PersonRow): any => row?.expenses?.[i]?.value,
         formatter: function (this: any, value: any): string {
           return this.formatCurrency(value);

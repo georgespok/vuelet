@@ -74,10 +74,6 @@ export default Vue.extend({
     },
   },
   methods: {
-    isExpenseHeader(header: ColumnHeader): boolean {
-      // All expense columns use a dropdown filter instead of free-text.
-      return typeof header.value === "string" && header.value.indexOf("expenses") === 0;
-    },
     normalizeFilterText(raw: any): string {
       return String(raw ?? "").trim().toLowerCase();
     },
@@ -86,7 +82,7 @@ export default Vue.extend({
       for (let i = 0; i < headers.length; i++) {
         const header = headers[i];
 
-        if (this.isExpenseHeader(header)) {
+        if (header.useMoneyFilter) {
           const mode = (filters[header.value] as ExpenseFilterMode) || "";
           if (mode === "eq0" || mode === "gt0") activeFilters.push({ kind: "expense", header, mode });
           continue;
@@ -165,7 +161,7 @@ export default Vue.extend({
           <tr>
             <td v-for="header in normalizedHeaders" :key="'filter-' + header.value" :style="{ width: header.width }">
               <v-select
-                v-if="isExpenseHeader(header)"
+                v-if="header.useMoneyFilter"
                 v-model="filters[header.value]"
                 :items="[
                   { text: 'All', value: '' },
