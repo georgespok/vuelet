@@ -3,11 +3,7 @@ import { formattingMixin } from "./shared/mixins/formatting-mixin.component";
 import type { ColumnHeader } from "./models/column-header";
 import type { PersonRow } from "./models/person-row";
 import TableFilterRow from "./components/table-filter-row.component";
-
-type ExpenseFilterMode = "" | "eq0" | "gt0";
-type ActiveFilter =
-  | { kind: "text"; header: ColumnHeader; filterText: string }
-  | { kind: "expense"; header: ColumnHeader; mode: Exclude<ExpenseFilterMode, ""> };
+import type { ActiveFilter, MoneyFilterMode } from "./shared/table-filtering.types";
 
 export default Vue.extend({
   name: "people-table",
@@ -36,16 +32,7 @@ export default Vue.extend({
       itemsPerPage: 10,
     };
   },
-  created(): void {
-    this.ensureFiltersForHeaders();
-  },
   watch: {
-    headers: {
-      handler(): void {
-        this.ensureFiltersForHeaders();
-      },
-      deep: true,
-    },
     filters: {
       handler(): void {
         this.page = 1;
@@ -90,8 +77,8 @@ export default Vue.extend({
         const header = headers[i];
 
         if (header.useMoneyFilter) {
-          const mode = (filters[header.value] as ExpenseFilterMode) || "";
-          if (mode === "eq0" || mode === "gt0") activeFilters.push({ kind: "expense", header, mode });
+          const mode = (filters[header.value] as MoneyFilterMode) || "";
+          if (mode === "eq0" || mode === "gt0") activeFilters.push({ kind: "money", header, mode });
           continue;
         }
 
@@ -111,7 +98,7 @@ export default Vue.extend({
     isCellMatchesFilter(row: PersonRow, filter: ActiveFilter): boolean {
       const raw = this.getCellValue(row, filter.header);
 
-      if (filter.kind === "expense") {
+      if (filter.kind === "money") {
         // Treat null/undefined/empty as 0.
         if (raw === null || raw === undefined || raw === "") return filter.mode === "eq0";
         const asNumber = typeof raw === "number" ? raw : Number(raw);
@@ -121,13 +108,6 @@ export default Vue.extend({
 
       const cellText = String(raw ?? "").toLowerCase();
       return cellText.indexOf(filter.filterText) !== -1;
-    },
-    ensureFiltersForHeaders(): void {
-      const headers = this.normalizedHeaders;
-      for (let i = 0; i < headers.length; i++) {
-        const key = headers[i].value;
-        if (!(key in this.filters)) this.$set(this.filters, key, "");
-      }
     },
     getCellValue(row: any, header: ColumnHeader | undefined): any {
       if (!header) {

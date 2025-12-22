@@ -1,7 +1,6 @@
 import Vue from "vue";
 import type { ColumnHeader } from "../models/column-header";
-
-type MoneyFilterMode = "" | "eq0" | "gt0";
+import type { MoneyFilterMode } from "../shared/table-filtering.types";
 
 export default Vue.extend({
   name: "table-filter-row",
@@ -13,6 +12,11 @@ export default Vue.extend({
     filters: {
       type: Object,
       required: true,
+    },
+    autoInitFilters: {
+      type: Boolean,
+      required: false,
+      default: true,
     },
     moneyFilterItems: {
       type: Array,
@@ -32,7 +36,30 @@ export default Vue.extend({
       return (this.filters as any) as Record<string, any>;
     },
   },
+  created(): void {
+    this.ensureFilterKeysInitialized();
+  },
+  watch: {
+    headers: {
+      handler(): void {
+        this.ensureFilterKeysInitialized();
+      },
+      deep: true,
+    },
+  },
   methods: {
+    ensureFilterKeysInitialized(): void {
+      if (!this.autoInitFilters) return;
+      const headers = this.normalizedHeaders;
+      const filters = this.normalizedFilters;
+
+      for (let i = 0; i < headers.length; i++) {
+        const key = headers[i].value;
+        if (filters[key] === undefined) {
+          this.$emit("set-filter", { key, value: "" });
+        }
+      }
+    },
     onFilterInput(key: string, value: any): void {
       const normalized = value === null || value === undefined ? "" : value;
       this.$emit("set-filter", { key, value: normalized });

@@ -3,11 +3,7 @@ import { formattingMixin } from "./shared/mixins/formatting-mixin.component";
 import type { ColumnHeader } from "./models/column-header";
 import type { DepartmentRow } from "./models/department-row";
 import TableFilterRow from "./components/table-filter-row.component";
-
-type MoneyFilterMode = "" | "eq0" | "gt0";
-type ActiveFilter =
-  | { kind: "text"; header: ColumnHeader; filterText: string }
-  | { kind: "money"; header: ColumnHeader; mode: Exclude<MoneyFilterMode, ""> };
+import type { ActiveFilter, MoneyFilterMode } from "./shared/table-filtering.types";
 
 export default Vue.extend({
   name: "department-table",
@@ -36,16 +32,7 @@ export default Vue.extend({
       itemsPerPage: 10,
     };
   },
-  created(): void {
-    this.ensureFiltersForHeaders();
-  },
   watch: {
-    headers: {
-      handler(): void {
-        this.ensureFiltersForHeaders();
-      },
-      deep: true,
-    },
     filters: {
       handler(): void {
         this.page = 1;
@@ -106,13 +93,6 @@ export default Vue.extend({
 
       const cellText = String(raw ?? "").toLowerCase();
       return cellText.indexOf(filter.filterText) !== -1;
-    },
-    ensureFiltersForHeaders(): void {
-      const headers = this.normalizedHeaders;
-      for (let i = 0; i < headers.length; i++) {
-        const key = headers[i].value;
-        if (!(key in this.filters)) this.$set(this.filters, key, "");
-      }
     },
     getCellValue(row: any, header: ColumnHeader | undefined): any {
       if (!header) return undefined;
