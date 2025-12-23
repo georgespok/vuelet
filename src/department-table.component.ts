@@ -4,7 +4,7 @@ import type { ColumnHeader } from "./models/column-header";
 import type { DepartmentRow } from "./models/department-row";
 import TableFilterRow from "./components/table-filter-row.component";
 import type { ActiveFilter } from "./shared/table-filtering.types";
-import { defaultGetCellValue, getActiveFilters, isRowMatchesFilters } from "./shared/table-filtering";
+import { Filtering } from "./shared/table-filtering";
 
 export default Vue.extend({
   name: "department-table",
@@ -46,10 +46,12 @@ export default Vue.extend({
       return (this.headers as any) as ColumnHeader[];
     },
     filteredRows(): DepartmentRow[] {
-      const activeFilters = getActiveFilters(this.normalizedHeaders, this.filters);
+      const activeFilters = Filtering.TableFiltering.getActiveFilters(this.normalizedHeaders, this.filters);
       const rows = (this.rows as any) as DepartmentRow[];
       if (!activeFilters.length) return rows;
-      return rows.filter((row: DepartmentRow) => isRowMatchesFilters(row, activeFilters, this.getCellValue));
+      return rows.filter((row: DepartmentRow) =>
+        Filtering.TableFiltering.isRowMatchesFilters(row, activeFilters, this.getCellValue)
+      );
     },
   },
   methods: {
@@ -57,7 +59,7 @@ export default Vue.extend({
       this.$set(this.filters, payload.key, payload.value);
     },
     getCellValue(row: any, header: ColumnHeader | undefined): any {
-      return defaultGetCellValue(row, header);
+      return Filtering.TableFiltering.defaultGetCellValue(row, header);
     },
     formatCell(row: any, header: ColumnHeader): string {
       const raw = this.getCellValue(row, header);
