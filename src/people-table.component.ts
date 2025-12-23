@@ -3,7 +3,8 @@ import { formattingMixin } from "./shared/mixins/formatting-mixin.component";
 import type { ColumnHeader } from "./models/column-header";
 import type { PersonRow } from "./models/person-row";
 import TableFilterRow from "./components/table-filter-row.component";
-import type { ActiveFilter, MoneyFilterMode } from "./shared/table-filtering.types";
+import type { ActiveFilter } from "./shared/table-filtering.types";
+import { defaultGetCellValue, getActiveFilters, isRowMatchesFilters } from "./shared/table-filtering";
 
 export default Vue.extend({
   name: "people-table",
@@ -55,74 +56,21 @@ export default Vue.extend({
     },
 
     filteredRows(): PersonRow[] {
-      const activeFilters = this.getActiveFilters(this.normalizedHeaders, this.filters);
+      const activeFilters = getActiveFilters(this.normalizedHeaders, this.filters);
       const rows = (this.rows as any) as PersonRow[];
       if (!activeFilters.length) {
         return rows;
       }
 
-      return rows.filter((row: PersonRow) => this.isRowMatchesFilters(row, activeFilters));
+      return rows.filter((row: PersonRow) => isRowMatchesFilters(row, activeFilters, this.getCellValue));
     },
   },
   methods: {
     onSetFilter(payload: { key: string; value: any }): void {
       this.$set(this.filters, payload.key, payload.value);
     },
-    normalizeFilterText(raw: any): string {
-      return String(raw ?? "").trim().toLowerCase();
-    },
-    getActiveFilters(headers: ColumnHeader[], filters: Record<string, any>): ActiveFilter[] {
-      const activeFilters: ActiveFilter[] = [];
-      for (let i = 0; i < headers.length; i++) {
-        const header = headers[i];
-
-        if (header.useMoneyFilter) {
-          const mode = (filters[header.value] as MoneyFilterMode) || "";
-          if (mode === "eq0" || mode === "gt0") activeFilters.push({ kind: "money", header, mode });
-          continue;
-        }
-
-        const filterText = this.normalizeFilterText(filters[header.value]);
-        if (filterText) activeFilters.push({ kind: "text", header, filterText });
-      }
-      return activeFilters;
-    },
-    isRowMatchesFilters(row: PersonRow, filters: ActiveFilter[]): boolean {
-      for (let i = 0; i < filters.length; i++) {
-        if (!this.isCellMatchesFilter(row, filters[i])) {
-          return false;
-        }
-      }
-      return true;
-    },
-    isCellMatchesFilter(row: PersonRow, filter: ActiveFilter): boolean {
-      const raw = this.getCellValue(row, filter.header);
-
-      if (filter.kind === "money") {
-        // Treat null/undefined/empty as 0.
-        if (raw === null || raw === undefined || raw === "") return filter.mode === "eq0";
-        const asNumber = typeof raw === "number" ? raw : Number(raw);
-        const value = isFinite(asNumber) ? asNumber : 0;
-        return filter.mode === "eq0" ? value === 0 : value > 0;
-      }
-
-      const cellText = String(raw ?? "").toLowerCase();
-      return cellText.indexOf(filter.filterText) !== -1;
-    },
     getCellValue(row: any, header: ColumnHeader | undefined): any {
-      if (!header) {
-        return undefined;
-      }
-
-      if (row === null || row === undefined) {
-        return undefined;
-      }
-
-      if (!header.getValue) {
-        return row[header.value] ?? undefined;
-      }
-
-      return header.getValue(row, header);
+      return defaultGetCellValue(row, header);
     },
     formatCell(row: any, header: ColumnHeader): string {
       const raw = this.getCellValue(row, header);
