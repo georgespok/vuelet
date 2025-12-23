@@ -37,12 +37,12 @@ export default Vue.extend({
     },
   },
   created(): void {
-    this.ensureFilterKeysInitialized();
+    this.initFilterKeys();
   },
   watch: {
     headers: {
       handler(): void {
-        this.ensureFilterKeysInitialized();
+        this.initFilterKeys();
       },
       deep: true,
     },
