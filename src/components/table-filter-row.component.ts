@@ -18,15 +18,6 @@ export default Vue.extend({
       required: false,
       default: true,
     },
-    moneyFilterItems: {
-      type: Array,
-      required: false,
-      default: () => [
-        { text: "All", value: "" },
-        { text: "= 0", value: "eq0" },
-        { text: "> 0", value: "gt0" },
-      ],
-    },
   },
   computed: {
     normalizedHeaders(): ColumnHeader[] {
@@ -36,32 +27,37 @@ export default Vue.extend({
       return (this.filters as any) as Record<string, any>;
     },
   },
-  created(): void {
-    this.initFilterKeys();
-  },
-  watch: {
-    headers: {
-      handler(): void {
-        this.initFilterKeys();
-      },
-      deep: true,
-    },
-  },
+  
   methods: {
-    initFilterKeys(): void {
-      if (!this.autoInitFilters) return;
-      const headers = this.normalizedHeaders;
-      const filters = this.normalizedFilters;
-
-      for (let i = 0; i < headers.length; i++) {
-        const key = headers[i].value;
-        if (filters[key] === undefined) {
-          this.$emit("set-filter", { key, value: "" });
-        }
-      }
+    isSelectHeader(header: ColumnHeader): boolean {
+      return header.filterSpec?.kind === "select";
     },
+    isMoneyHeader(header: ColumnHeader): boolean {
+      return header.filterSpec?.kind === "money";
+    },
+    getSelectItems(header: ColumnHeader): Array<{ text: string; value: string | number }> {
+      if (header.filterSpec?.kind !== "select") return [];
+      return (header.filterSpec.items as any) as Array<{ text: string; value: string | number }>;
+    },
+    isSelectClearable(header: ColumnHeader): boolean {
+      if (header.filterSpec?.kind !== "select") return false;
+      return header.filterSpec.clearable !== false;
+    },
+    getSelectFilterValue(key: string): Array<string | number> {
+      const raw = this.normalizedFilters[key];
+      return Array.isArray(raw) ? (raw as Array<string | number>) : [];
+    },
+    getMoneyItems(header: ColumnHeader): Array<{ text: string; value: MoneyFilterCondition }> {
+      if (header.filterSpec?.kind !== "money") return [];
+      return (header.filterSpec.items as any) as Array<{ text: string; value: MoneyFilterCondition }>;
+    },
+    
     onFilterInput(key: string, value: any): void {
       const normalized = value === null || value === undefined ? "" : value;
+      this.$emit("set-filter", { key, value: normalized });
+    },
+    onSelectInput(key: string, value: any): void {
+      const normalized = Array.isArray(value) ? value.filter((x) => x !== null && x !== undefined) : [];
       this.$emit("set-filter", { key, value: normalized });
     },
     getMoneyFilterValue(key: string): MoneyFilterCondition {
@@ -77,9 +73,22 @@ export default Vue.extend({
         :style="{ width: header.width }"
       >
         <v-select
-          v-if="header.useMoneyFilter"
+          v-if="isSelectHeader(header)"
+          multiple
+          :clearable="isSelectClearable(header)"
+          :value="getSelectFilterValue(header.value)"
+          :items="getSelectItems(header)"
+          item-text="text"
+          item-value="value"
+          dense
+          hide-details
+          class="ma-0 pa-0"
+          @input="onSelectInput(header.value, $event)"
+        />
+        <v-select
+          v-else-if="isMoneyHeader(header)"
           :value="getMoneyFilterValue(header.value)"
-          :items="moneyFilterItems"
+          :items="getMoneyItems(header)"
           item-text="text"
           item-value="value"
           dense
@@ -89,7 +98,7 @@ export default Vue.extend({
         />
         <v-text-field
           v-else
-          :value="normalizedFilters[header.value]"
+          :value="normalizedFilters[header.value] ?? ''"
           dense
           clearable
           hide-details

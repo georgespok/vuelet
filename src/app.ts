@@ -5,7 +5,7 @@ import "@mdi/font/css/materialdesignicons.min.css";
 
 import PeopleTable from "./people-table.component";
 import DepartmentTable from "./department-table.component";
-import type { ColumnHeader } from "./models/column-header";
+import type { ColumnHeader, FilterItem, MoneyFilterCondition } from "./models/column-header";
 import type { PersonRow } from "./models/person-row";
 import type { DepartmentRow } from "./models/department-row";
 import peopleRows from "./people.json";
@@ -15,6 +15,12 @@ Vue.use(Vuetify);
 const vuetify = new Vuetify({});
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
+
+const DEFAULT_MONEY_FILTER_ITEMS: Array<FilterItem<MoneyFilterCondition>> = [
+  { text: "All", value: "" },
+  { text: "= 0", value: "eq0" },
+  { text: "> 0", value: "gt0" },
+];
 
 const plainTextFormatter = function (this: any, value: any): string {
   return String(value ?? "");
@@ -49,7 +55,7 @@ function buildPeopleHeaders(): ColumnHeader[] {
       text: `${MONTHS[i]} Exp`,
       value: `expenses[${i}].value`,
       width: "110px",
-      useMoneyFilter: true,
+      filterSpec: { kind: "money", items: DEFAULT_MONEY_FILTER_ITEMS },
       getValue: (row: PersonRow): any => row?.expenses?.[i]?.value,
       formatter: currencyFormatter,
     });
@@ -58,9 +64,22 @@ function buildPeopleHeaders(): ColumnHeader[] {
   return headers;
 }
 
-function buildDepartmentHeaders(): ColumnHeader[] {
+function buildDepartmentHeaders(allDepartments: DepartmentRow[]): ColumnHeader[] {
+  const departmentItems = allDepartments
+    .map((d) => ({ text: d.name, value: d.id }))
+    .sort((a, b) => a.text.localeCompare(b.text));
+
   const headers: ColumnHeader[] = [
-    { text: "Department", value: "name", width: "220px", formatter: plainTextFormatter },
+    {
+      text: "Department",
+      value: "id",
+      width: "220px",
+      getValue: (row: DepartmentRow): any => row?.id,
+      formatter: function (this: any, _value: any, row: DepartmentRow): string {
+        return String(row?.name ?? "");
+      },
+      filterSpec: { kind: "select", multiple: true, items: departmentItems, clearable: true },
+    },
     {
       text: "Total Salary",
       value: "totalSalary",
@@ -75,7 +94,7 @@ function buildDepartmentHeaders(): ColumnHeader[] {
       text: `${MONTHS[i]} Salary`,
       value: `salaries[${i}].amount`,
       width: "140px",
-      useMoneyFilter: true,
+      filterSpec: { kind: "money", items: DEFAULT_MONEY_FILTER_ITEMS },
       getValue: (row: DepartmentRow): any => row?.salaries?.[i]?.amount,
       formatter: currencyFormatter,
     });
@@ -95,11 +114,12 @@ const AppRoot = Vue.extend({
   name: "AppRoot",
   components: { PeopleTable, DepartmentTable },
   data(): AppRootVm {
+    const deptRows = (departmentRows as any) as DepartmentRow[];
     return {
       peopleRows: (peopleRows as any) as PersonRow[],
       peopleHeaders: buildPeopleHeaders(),
-      departmentRows: (departmentRows as any) as DepartmentRow[],
-      departmentHeaders: buildDepartmentHeaders(),
+      departmentRows: deptRows,
+      departmentHeaders: buildDepartmentHeaders(deptRows),
     };
   },
   template: `

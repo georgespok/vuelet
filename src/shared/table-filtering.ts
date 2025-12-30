@@ -11,8 +11,16 @@ export namespace Filtering {
       const activeFilters: ActiveFilter[] = [];
       for (let i = 0; i < headers.length; i++) {
         const header = headers[i];
+        const filterSpec = header.filterSpec;
 
-        if (header.useMoneyFilter) {
+        if (filterSpec?.kind === "select") {
+          const raw = filters[header.value];
+          const values = Array.isArray(raw) ? (raw.filter((x) => x !== null && x !== undefined) as Array<string | number>) : [];
+          if (values.length) activeFilters.push({ kind: "select", header, values });
+          continue;
+        }
+
+        if (filterSpec?.kind === "money") {
           const condition = (filters[header.value] as MoneyFilterCondition) || "";
           if (condition === "eq0" || condition === "gt0") {
             activeFilters.push({ kind: "money", header, condition });
@@ -38,6 +46,10 @@ export namespace Filtering {
     }
 
     static isCellValueMatchesFilter(raw: any, filter: ActiveFilter): boolean {
+      if (filter.kind === "select") {
+        return filter.values.indexOf(raw as any) !== -1;
+      }
+
       if (filter.kind === "money") {
         // Treat null/undefined/empty as 0.
         if (raw === null || raw === undefined || raw === "") return filter.condition === "eq0";
